@@ -22,7 +22,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && electron-builder",
-    "rebuild": "npm rebuild better-sqlite3 --runtime=electron --target=39.2.7",
     "preview": "vite preview"
   },
   "devDependencies": {

@@ -19,7 +19,8 @@ cd vue-vxe-gantt
 npm install
 
 重新编译better-sqlite3
-npm rebuild better-sqlite3 --runtime=electron --target=39.2.7（electron版本号）
+npm rebuild
+会执行：better-sqlite3 --runtime=electron --target=39.2.7（electron版本号）
 
 运行
 npm run dev

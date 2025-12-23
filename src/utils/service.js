@@ -97,4 +97,18 @@ export const serviceApi = {
       return { success: false, error: error.message };
     }
   },
+  // 查询全部项目名称
+  async selectHomeData(data) {
+    try {
+      if (window.ipcRenderer) {
+        const result = await ipcRenderer.invoke(
+          "database:selectHomeData",
+          data
+        );
+        return result;
+      }
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
 };

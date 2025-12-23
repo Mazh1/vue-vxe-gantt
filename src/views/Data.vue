@@ -234,8 +234,9 @@ const pageInfo = reactive({
 const alertInfoFn = (info) => {
   VxeUI.modal.message({
     width: 200,
-    content: info.message,
     top: 30,
+    duration: 2000,
+    content: info.message,
     status: info.alertStatus
   });
 }

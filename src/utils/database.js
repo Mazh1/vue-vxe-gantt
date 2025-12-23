@@ -267,6 +267,36 @@ class DatabaseService {
       },
     };
   }
+  /**
+   * 查询首页gantt图原始数据
+   * @param {*} data
+   * @returns
+   */
+  selectHomeData(data) {
+    const stmt = this.db.prepare(`
+      SELECT * FROM projects
+      WHERE
+          (date(startdate) BETWEEN date(@startDate) AND date(@endDate))
+          OR
+          (date(enddate) BETWEEN date(@startDate) AND date(@endDate))
+      ORDER BY created_at DESC
+      LIMIT 200
+    `);
+    console.log(stmt);
+    try {
+      const result = stmt.all(data);
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (error) {
+      console.error("SELECT ERROR:", error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
   // 关闭数据库连接
   close() {
     if (this.db) {

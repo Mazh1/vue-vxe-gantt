@@ -44,6 +44,7 @@ import { useRouter } from 'vue-router'
 import quitSvg from '../assets/quit.svg'
 import reloadSvg from '../assets/reload.svg'
 import debugSvg from '../assets/debug.svg'
+import clearSvg from '../assets/clear.svg'
 import setSvg from '../assets/set.svg'
 const router = useRouter()
 const toolbarItems = ref([
@@ -70,6 +71,7 @@ const toolbarItems = ref([
       { key: 'setsystem', text: '设置', icon: setSvg },
       { key: 'reload', text: '刷新', icon: reloadSvg },
       { key: 'debug', text: '调试', icon: debugSvg },
+      { key: 'debug', text: '清理缓存', icon: clearSvg },
       { key: 'quit', text: '退出', icon: quitSvg }
     ]
   }

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <vxe-tabs>
+    <vxe-tabs @tab-click="loadData">
       <vxe-tab-pane title="人员维度" name="name">
         <vxe-gantt class="mygantt-scrollbar" v-bind="ganttOptionsName">
           <template #seq_temp="{ row }">
@@ -28,6 +28,9 @@
 </template>
 
 <script setup>
+import { ref, reactive } from 'vue'
+import { serviceApi } from '../utils/service'
+const ganttRef = ref()
 /**
  * 数组对象属性互换
  * @param arr
@@ -107,7 +110,7 @@ function formatData(data) {
   });
   //为分组后的数据增加序号字段
   const reData = addSeqToGroups(dataArr);
-  const margeCells = []
+  const mergeCells = []
   groupRanges.forEach(item => {
     let margeCell1 = { row: 1, col: 1, rowspan: 1, colspan: 1 }
     let margeCell2 = { row: 1, col: 1, rowspan: 1, colspan: 1 }
@@ -115,15 +118,15 @@ function formatData(data) {
       margeCell1.row = item.start - 1;
       margeCell1.rowspan = item.end - item.start + 1;
       margeCell1.col = 0;
-      margeCells.push(margeCell1);
+      mergeCells.push(margeCell1);
       margeCell2.row = item.start - 1;
       margeCell2.rowspan = item.end - item.start + 1;
-      margeCells.push(margeCell2);
+      mergeCells.push(margeCell2);
     }
   });
   return {
     data: reData,
-    margeCells: margeCells
+    mergeCells: mergeCells
   }
 }
 
@@ -147,7 +150,7 @@ function formatDateRange(start, end) {
 /**
  * 生成gantt配置参数
  */
-function getGanttOptions(options, taskKey) {
+function getGanttOptions(columns, taskKey) {
   const ganttOptions = {
     border: true,
     size: 'small',
@@ -157,7 +160,7 @@ function getGanttOptions(options, taskKey) {
       isCurrent: true,
       isHover: true
     },
-    mergeCells: options.margeCells,
+    mergeCells: [],
     cellConfig: {
       height: 35
     },
@@ -216,46 +219,79 @@ function getGanttOptions(options, taskKey) {
         }
       ]
     },
-    columns: options.columns,
-    data: options.data
+    columns: columns,
+    data: []
   };
   return ganttOptions;
 }
 
-const testData = [
-  { id: 1, name: '刘江', title: 'BI项目', start: '2025-11-28', end: '2025-11-28', isMark: 0 },
-  { id: 2, name: '汤凯', title: '天枢3.0', start: '2025-11-01', end: '2025-11-28', isMark: 0 },
-  { id: 3, name: '汤凯', title: 'BI项目', start: '2025-11-03', end: '2025-11-28', isMark: 0 },
-  { id: 4, name: '詹顺怀', title: '芜湖市公共视频整合共享建设项目', start: '2025-11-01', end: '2025-11-05', isMark: 0 },
-  { id: 5, name: '邹成', title: '九霄 v1.4.0', start: '2025-11-01', end: '2025-11-20', isMark: 1 },
-  { id: 6, name: '曹强', title: 'BI项目', start: '2025-11-03', end: '2025-11-28', isMark: 0 },
-  { id: 7, name: '曹强', title: '青岛崂山项目', start: '2025-11-01', end: '2025-11-13', isMark: 0 },
-  { id: 8, name: '金功学', title: '中移物联网智能体项目', start: '2025-11-13', end: '2025-12-15', isMark: 0 },
-  { id: 9, name: '金功学', title: '海淀视综', start: '2025-11-01', end: '2025-11-15', isMark: 0 },
-  { id: 10, name: '李孟', title: '天枢3.0', start: '2025-11-01', end: '2025-11-28', isMark: 0 },
-  { id: 11, name: '李孟', title: '谛听', start: '2025-11-17', end: '2025-11-28', isMark: 0 },
-  { id: 12, name: '陈阳	', title: '幻方v3.0 - 知库通言', start: '2025-11-01', end: '2025-11-05', isMark: 1 },
-  { id: 13, name: '陈阳	', title: '重庆物联网二期大模型', start: '2025-11-01', end: '2025-11-20', isMark: 1 }
-]
+const tableData = []
 
 // 人员维度
-const ganttDataName = formatData(testData)
-ganttDataName.columns = [
+// const ganttDataName = formatData(testData)
+// ganttDataName.columns = [
+//   { type: 'seq', width: 50, align: 'center', slots: { default: 'seq_temp' } },
+//   { field: 'name', title: '姓名', width: 70, align: 'center', slots: { default: 'name_temp' } },
+//   { field: 'title', title: '产品/项目', width: 200 }
+// ]
+const ganttNameColumns = [
   { type: 'seq', width: 50, align: 'center', slots: { default: 'seq_temp' } },
   { field: 'name', title: '姓名', width: 70, align: 'center', slots: { default: 'name_temp' } },
   { field: 'title', title: '产品/项目', width: 200 }
 ]
-const ganttOptionsName = getGanttOptions(ganttDataName, 'title');
+const ganttOptionsName = reactive(getGanttOptions(ganttNameColumns, 'title'));
 
 // 项目维度
-const ganttDataNameProject = formatData(swapProperties(testData, 'name', 'title'))
-ganttDataNameProject.columns = [
+// const ganttDataNameProject = formatData(swapProperties(tableData, 'name', 'title'))
+const ganttProjectColumns = [
   { type: 'seq', width: 50, align: 'center', slots: { default: 'seq_temp' } },
   { field: 'name', title: '产品/项目', width: 200 },
   { field: 'title', title: '姓名', width: 70, align: 'center', slots: { default: 'name_temp' } }
 ]
-const ganttOptionsProject = getGanttOptions(ganttDataNameProject, 'name')
-
+const ganttOptionsProject = reactive(getGanttOptions(ganttProjectColumns, 'name'))
+/**
+ * tab切换事件
+ * @param event
+ */
+const loadData = (event) => {
+  if (event.name === 'project') {
+    const fd = formatData(swapProperties(tableData, 'name', 'title'))
+    Object.assign(ganttOptionsProject, {
+      mergeCells: fd.mergeCells,
+      data: fd.data
+    })
+  }
+}
+/**
+ * 初始化数据
+ */
+const initData = () => {
+  const data = {
+    startDate: '2025-11-09',
+    endDate: '2025-12-31'
+  }
+  serviceApi.selectHomeData(data).then((re) => {
+    if (re.success) {
+      re.data.forEach(item => {
+        const newItem = {
+          id: item.id,
+          name: item.name,
+          title: item.project,
+          start: item.startdate,
+          end: item.enddate,
+          isMark: 0
+        }
+        tableData.push(newItem)
+      });
+      const fd = formatData(tableData)
+      Object.assign(ganttOptionsName, {
+        mergeCells: fd.mergeCells,
+        data: fd.data
+      })
+    }
+  })
+}
+initData()
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

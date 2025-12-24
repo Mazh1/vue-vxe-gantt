@@ -282,7 +282,6 @@ class DatabaseService {
       ORDER BY created_at DESC
       LIMIT 200
     `);
-    console.log(stmt);
     try {
       const result = stmt.all(data);
       return {
@@ -297,7 +296,34 @@ class DatabaseService {
       };
     }
   }
-  // 关闭数据库连接
+  /**
+   * 清除人员名称、项目名称缓存数据表
+   * @returns
+   */
+  clearCache() {
+    const txn = this.db.transaction(() => {
+      const stmt1 = this.db.prepare(`DELETE FROM projectnames`);
+      const stmt2 = this.db.prepare(`DELETE FROM personnel`);
+      stmt1.run();
+      stmt2.run();
+    });
+    try {
+      txn();
+      return {
+        success: true,
+        data: {},
+      };
+    } catch (error) {
+      console.error("CLEAR CACHE ERROR:", error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+  /**
+   * 关闭数据库连接
+   */
   close() {
     if (this.db) {
       this.db.close();

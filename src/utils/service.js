@@ -110,5 +110,15 @@ export const serviceApi = {
     } catch (error) {
       return { success: false, error: error.message };
     }
+  }, // 查询全部项目名称
+  async clearCache() {
+    try {
+      if (window.ipcRenderer) {
+        const result = await ipcRenderer.invoke("database:clearCache");
+        return result;
+      }
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   },
 };

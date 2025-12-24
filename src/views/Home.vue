@@ -1,5 +1,9 @@
 <template>
   <div>
+    <div class="date-container">
+      <vxe-date-range-picker size="small" style="width: 200px;" v-model="dateObj.dates" @change="selectDate"
+        type="date"></vxe-date-range-picker>
+    </div>
     <vxe-tabs @tab-click="loadData">
       <vxe-tab-pane title="人员维度" name="name">
         <vxe-gantt class="mygantt-scrollbar" v-bind="ganttOptionsName">
@@ -28,9 +32,25 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { reactive } from 'vue'
 import { serviceApi } from '../utils/service'
-const ganttRef = ref()
+let nowTab = 'name'
+const dateObj = reactive({})
+/**
+ * 如果本地未持久化日期范围，设置默认当前月
+ */
+function getDefaultDate() {
+  const d = new Date();
+  const format = date => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+  const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  return `${format(firstDay)},${format(lastDay)}`;
+}
 /**
  * 数组对象属性互换
  * @param arr
@@ -225,15 +245,9 @@ function getGanttOptions(columns, taskKey) {
   return ganttOptions;
 }
 
-const tableData = []
+let tableData = []
 
 // 人员维度
-// const ganttDataName = formatData(testData)
-// ganttDataName.columns = [
-//   { type: 'seq', width: 50, align: 'center', slots: { default: 'seq_temp' } },
-//   { field: 'name', title: '姓名', width: 70, align: 'center', slots: { default: 'name_temp' } },
-//   { field: 'title', title: '产品/项目', width: 200 }
-// ]
 const ganttNameColumns = [
   { type: 'seq', width: 50, align: 'center', slots: { default: 'seq_temp' } },
   { field: 'name', title: '姓名', width: 70, align: 'center', slots: { default: 'name_temp' } },
@@ -242,33 +256,56 @@ const ganttNameColumns = [
 const ganttOptionsName = reactive(getGanttOptions(ganttNameColumns, 'title'));
 
 // 项目维度
-// const ganttDataNameProject = formatData(swapProperties(tableData, 'name', 'title'))
 const ganttProjectColumns = [
   { type: 'seq', width: 50, align: 'center', slots: { default: 'seq_temp' } },
   { field: 'name', title: '产品/项目', width: 200 },
   { field: 'title', title: '姓名', width: 70, align: 'center', slots: { default: 'name_temp' } }
 ]
-const ganttOptionsProject = reactive(getGanttOptions(ganttProjectColumns, 'name'))
+const ganttOptionsProject = reactive(getGanttOptions(ganttProjectColumns, 'title'))
 /**
  * tab切换事件
  * @param event
  */
 const loadData = (event) => {
+  nowTab = event.name
+  let fd = formatData(tableData)
+  let ganttOptions = ganttOptionsName;
   if (event.name === 'project') {
-    const fd = formatData(swapProperties(tableData, 'name', 'title'))
-    Object.assign(ganttOptionsProject, {
-      mergeCells: fd.mergeCells,
-      data: fd.data
-    })
+    fd = formatData(swapProperties(tableData, 'name', 'title'))
+    ganttOptions = ganttOptionsProject;
+  }
+  Object.assign(ganttOptions, {
+    mergeCells: fd.mergeCells,
+    data: fd.data
+  })
+}
+
+/**
+ * 选择日期触发，持久化存储
+ * @param dates
+ */
+const selectDate = (dateObj) => {
+  const arr = dateObj.value.split(',')
+  if (arr.length > 1 && arr[0] !== '' && arr[1] !== '') {
+    window.localStorage.setItem('DATE_RANGE', arr)
+    initData({ name: nowTab })
   }
 }
 /**
  * 初始化数据
  */
-const initData = () => {
+const initData = (event) => {
+  tableData = []
+  let dataArr = window.localStorage.getItem('DATE_RANGE')
+  if (!dataArr) {
+    dateObj.dates = getDefaultDate()
+  } else {
+    dateObj.dates = dataArr
+  }
+  const dateArr = dateObj.dates.split(',')
   const data = {
-    startDate: '2025-11-09',
-    endDate: '2025-12-31'
+    startDate: dateArr[0],
+    endDate: dateArr[1]
   }
   serviceApi.selectHomeData(data).then((re) => {
     if (re.success) {
@@ -283,15 +320,11 @@ const initData = () => {
         }
         tableData.push(newItem)
       });
-      const fd = formatData(tableData)
-      Object.assign(ganttOptionsName, {
-        mergeCells: fd.mergeCells,
-        data: fd.data
-      })
+      loadData(event)
     }
   })
 }
-initData()
+initData({ name: 'name' })
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -366,5 +399,12 @@ initData()
       background-color: #A3A6AD;
     }
   }
+}
+
+.date-container {
+  position: absolute;
+  top: 34px;
+  right: 5px;
+  z-index: 999;
 }
 </style>

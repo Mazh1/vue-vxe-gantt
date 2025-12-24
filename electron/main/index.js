@@ -217,3 +217,6 @@ ipcMain.handle("database:deleteProject", async (event, data) => {
 ipcMain.handle("database:selectHomeData", async (event, data) => {
   return DBService.selectHomeData(data);
 });
+ipcMain.handle("database:clearCache", async (event, data) => {
+  return DBService.clearCache(data);
+});

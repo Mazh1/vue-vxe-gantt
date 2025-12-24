@@ -36,17 +36,29 @@
         </div>
       </div>
     </div>
+    <div>
+      <vxe-modal v-model="showConfirm" type="alert" status="warning" title="提示" width="340" showFooter
+        @confirm="confrimEvent">
+        <template #default>
+          <span>
+            <span>是否确认删除人员、项目名称等缓存数据？</span>
+          </span>
+        </template>
+      </vxe-modal>
+    </div>
   </div>
 </template>
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { serviceApi } from '../utils/service'
 import quitSvg from '../assets/quit.svg'
 import reloadSvg from '../assets/reload.svg'
 import debugSvg from '../assets/debug.svg'
 import clearSvg from '../assets/clear.svg'
-import setSvg from '../assets/set.svg'
+// import setSvg from '../assets/set.svg'
 const router = useRouter()
+let showConfirm = ref(false)
 const toolbarItems = ref([
   {
     key: 'home',
@@ -68,11 +80,11 @@ const toolbarItems = ref([
     isOpen: false,
     hasDropdown: true,
     menu: [
-      { key: 'setsystem', text: '设置', icon: setSvg },
-      { key: 'reload', text: '刷新', icon: reloadSvg },
-      { key: 'debug', text: '调试', icon: debugSvg },
-      { key: 'debug', text: '清理缓存', icon: clearSvg },
-      { key: 'quit', text: '退出', icon: quitSvg }
+      // { key: 'setsystem', text: '系统设置', icon: setSvg },
+      { key: 'reload', text: '系统刷新', icon: reloadSvg },
+      { key: 'debug', text: '调试工具', icon: debugSvg },
+      { key: 'clearcache', text: '清理缓存', icon: clearSvg },
+      { key: 'quit', text: '退出系统', icon: quitSvg }
     ]
   }
 ]);
@@ -191,8 +203,8 @@ const handleMenuClick = (item, menuItem) => {
       toolbarItem.isOpen = false;
     }
   });
-  if (menuItem.key === 'setsystem') {
-    alert(menuItem.text);
+  if (menuItem.key === 'clearcache') {
+    showConfirm = true
   }
   if (menuItem.key === 'reload') {
     reloadApp();
@@ -205,6 +217,19 @@ const handleMenuClick = (item, menuItem) => {
   }
 
 };
+const clearCache = () => {
+  serviceApi.clearCache().then((re) => {
+    if (re.success) {
+      window.localStorage.removeItem('DATE_RANGE')
+      window.localStorage.removeItem('PAGE_SIZE')
+      showConfirm = false
+      reloadApp();
+    }
+  })
+}
+const confrimEvent = () => {
+  clearCache()
+}
 
 </script>
 <style scoped>

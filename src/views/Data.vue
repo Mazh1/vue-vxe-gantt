@@ -55,19 +55,30 @@
       </div>
     </div>
     <div class="btn-container">
-      <vxe-button mode="text" @click="createEvent" status="primary" icon="vxe-icon-add"
-        style="margin-right: 5px;">新建</vxe-button>
+      <vxe-button mode="text" @click="createEvent" status="primary" icon="vxe-icon-add">新建</vxe-button>
+      <vxe-button mode="text" @click="deleteMultipleEvent" status="primary" icon="vxe-icon-delete"
+        style="margin-right: 10px;">删除</vxe-button>
     </div>
     <div class="table-container" :style="{ height: tableHeight + 'px' }">
       <vxe-table ref="tableRef" border stripe height="100%" size="small" header-align="center"
         :column-config="{ resizable: true }" :row-config="{ isHover: true }"
-        :checkbox-config="{ labelField: 'id', highlight: true, range: true }" :data="tableData">
-        <vxe-column type="seq" width="50" align='center'></vxe-column>
+        :checkbox-config="{ labelField: '', highlight: false, range: true }" :data="tableData">
+        <vxe-column type="checkbox" title="" width="40" align='center'></vxe-column>
+        <vxe-column type="seq" width="50" align='center'>
+          <template #default="{ rowIndex }">
+            {{ getRowIndex(rowIndex) }}
+          </template>
+        </vxe-column>
         <vxe-column field="name" title="人员" width="140" align='center'></vxe-column>
         <vxe-column field="project" title="产品/项目" align='center'></vxe-column>
         <vxe-column field="startdate" title="开始日期" align='center'></vxe-column>
         <vxe-column field="enddate" title="结束日期" align='center'></vxe-column>
-        <vxe-column field="status" title="状态" align='center'></vxe-column>
+        <vxe-column field="status" title="状态" align='center'>
+          <template #default="{ row }">
+            <span v-if="row.status === '1'">进行中</span>
+            <span v-if="row.status === '2'">已完成</span>
+          </template>
+        </vxe-column>
         <vxe-column title="操作" align='center' width="140">
           <template #default="{ row }">
             <vxe-button mode="text" status="primary" @click="editEvent(row, true)">复制</vxe-button>
@@ -164,6 +175,14 @@
           </span>
         </template>
       </vxe-modal>
+      <vxe-modal v-model="showMultipleConfirm" type="alert" status="warning" title="提示" width="280" showFooter
+        @confirm="confrimMultipleEvent">
+        <template #default>
+          <span>
+            <span>是否确认删除所选数据？</span>
+          </span>
+        </template>
+      </vxe-modal>
     </div>
 
   </div>
@@ -177,6 +196,8 @@ import { serviceApi } from '../utils/service'
 let tableHeight = ref(4320) //表格初始高度
 let showPopup = ref(false) //是否显示dialog
 let showConfirm = ref(false)
+let showMultipleConfirm = ref(false)
+let deleteIds = []
 let dialogTitle = ref('') //dialog标题
 let tableData = ref([]) //表格数据
 const tableRef = ref() //表格对象
@@ -423,6 +444,22 @@ const deleteEvent = (row) => {
   formData.id = row.id
 }
 /**
+ * 批量删除
+ */
+const deleteMultipleEvent = () => {
+  deleteIds = []
+  const selectRows = tableRef.value.getCheckboxRecords()
+  if (selectRows.length === 0) {
+    return
+  } else {
+    showMultipleConfirm.value = true
+  }
+  selectRows.forEach(item => {
+    deleteIds.push(item.id)
+  });
+
+}
+/**
  * 新建数据
  */
 const createData = () => {
@@ -503,6 +540,30 @@ const confrimEvent = () => {
   })
 }
 /**
+ * 批量删除数据
+ * @param id
+ */
+const confrimMultipleEvent = () => {
+  let status = ''
+  if (searchStatus.value !== '0') {
+    status = searchStatus.value
+  }
+  const deleteInfo = { id: formData.id, ids: deleteIds, name: searchNameOptions.searchName, project: searchProjectOptions.searchName, status: status, page: pageInfo.currentPage, pageSize: pageInfo.pageSize }
+  serviceApi.deleteProjects(deleteInfo).then((re) => {
+    if (re.success) {
+      // 如果删除最后一条数据，当前页数小于总页数，重置当前页数
+      if (re.pagination.page > re.pagination.totalPages) {
+        pageInfo.currentPage = re.pagination.totalPages
+      }
+      handlePageData()
+      alertInfoFn({ isShow: true, message: '批量删除成功', alertStatus: 'success' })
+    } else {
+      alertInfoFn({ isShow: true, message: '批量删除失败', alertStatus: 'error' })
+    }
+    showConfirm.value = false;
+  })
+}
+/**
  * 对话框确认按钮事件
  */
 const dataEvent = () => {
@@ -513,7 +574,13 @@ const dataEvent = () => {
   }
 
 }
+const getRowIndex = (rowIndex) => {
+  // 从 1 开始递增pageInfo
+  // currentPage: 1,
+  // pageSize: 20
 
+  return (pageInfo.currentPage - 1) * pageInfo.pageSize + (rowIndex + 1)
+}
 onMounted(() => {
   let timeoutId = null;
   const delay = 100; // 防抖刷新时间间隔

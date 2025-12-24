@@ -212,7 +212,12 @@ ipcMain.handle("database:updateProject", async (event, data) => {
   return DBService.updateProject(data);
 });
 ipcMain.handle("database:deleteProject", async (event, data) => {
+  console.log("+++++++++++++++++++");
   return DBService.deleteProject(data);
+});
+ipcMain.handle("database:deleteProjects", async (event, data) => {
+  console.log("&&&&&&&&&&&&&&&&&&&&&&&");
+  return DBService.deleteProjects(data);
 });
 ipcMain.handle("database:selectHomeData", async (event, data) => {
   return DBService.selectHomeData(data);

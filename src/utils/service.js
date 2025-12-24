@@ -21,11 +21,25 @@ export const serviceApi = {
       return { success: false, error: error.message };
     }
   },
-  // 更新项目数据
+  // 删除项目数据
   async deleteProject(data) {
     try {
       if (window.ipcRenderer) {
         const result = await ipcRenderer.invoke("database:deleteProject", data);
+        return result;
+      }
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  // 批量删除项目数据
+  async deleteProjects(data) {
+    try {
+      if (window.ipcRenderer) {
+        const result = await ipcRenderer.invoke(
+          "database:deleteProjects",
+          data
+        );
         return result;
       }
     } catch (error) {

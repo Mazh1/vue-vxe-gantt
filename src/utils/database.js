@@ -268,6 +268,35 @@ class DatabaseService {
     };
   }
   /**
+   * 根据ids批量删除
+   * @param {*} data
+   */
+  deleteProjects(data) {
+    console.log("+++++++++++++++++++");
+    const ids = data.ids;
+    console.log(ids);
+    const placeholders = ids.map(() => "?").join(",");
+    const sql = `DELETE FROM projects WHERE id IN (${placeholders})`;
+    const stmt = this.db.prepare(sql);
+    try {
+      const result = stmt.run(...ids);
+      //删除数据后，重新获取数据页数、总数等信息，避免删除最后一条数据出现查询不到数据的情况
+      const dataInfo = this.selectProjects(data);
+      return {
+        success: true,
+        id: result.lastInsertRowid,
+        pagination: dataInfo.pagination, //删除后数据页数、总数等信息
+        changes: result.changes,
+      };
+    } catch (error) {
+      console.error("DELETE ERROR:", error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+  /**
    * 查询首页gantt图原始数据
    * @param {*} data
    * @returns

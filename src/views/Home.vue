@@ -177,7 +177,7 @@ function getGanttOptions(columns, taskKey) {
     autoResize: true,
     height: window.innerHeight - 80,
     rowConfig: {
-      isCurrent: true,
+      isCurrent: false,
       isHover: true
     },
     mergeCells: [],
@@ -203,6 +203,24 @@ function getGanttOptions(columns, taskKey) {
         width: 320
       },
       showNowLine: true,
+      viewStyle: {
+        rowStyle({ row }) {
+          console.log(row)
+          const yu = row.seq % 2
+          if (yu !== 0) {
+            return {
+              // backgroundColor: '#fff8dc'
+              backgroundColor: '#fff0f5'
+            };
+          } else {
+            return {
+              backgroundColor: '#fff8dc'
+              // backgroundColor: '#fff0f5'
+            };
+          }
+
+        }
+      },
       scales: [
         {
           type: 'month',

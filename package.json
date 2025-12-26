@@ -1,9 +1,9 @@
 {
   "name": "gantt-chat",
-  "version": "28.1.3",
+  "version": "1.0.0",
   "main": "dist-electron/main/index.js",
   "description": "gantt chat app",
-  "author": "钢蛋",
+  "author": "Iron Man",
   "license": "MIT",
   "private": true,
   "keywords": [

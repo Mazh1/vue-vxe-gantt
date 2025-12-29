@@ -272,9 +272,7 @@ class DatabaseService {
    * @param {*} data
    */
   deleteProjects(data) {
-    console.log("+++++++++++++++++++");
     const ids = data.ids;
-    console.log(ids);
     const placeholders = ids.map(() => "?").join(",");
     const sql = `DELETE FROM projects WHERE id IN (${placeholders})`;
     const stmt = this.db.prepare(sql);

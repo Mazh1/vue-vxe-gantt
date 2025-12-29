@@ -191,11 +191,20 @@ function getGanttOptions(columns, taskKey) {
         const dateObj = formatDateRange(row.start, row.end);
         return `${row[taskKey]}` + '【' + `${dateObj.start}` + '~' + `${dateObj.end}` + '】';
       },
-      barStyle: {
-        round: true,
-        bgColor: '#29b6f6',
-        lineHeight: '30px',
-        completedBgColor: '#65c16f'
+      barStyle({ row }) {
+        let bgColor = ''
+        const yu = row.seq % 2
+        if (yu !== 0) {
+          bgColor = '#d87ac2'
+        } else {
+          bgColor = '#e0c331'
+        }
+        return {
+          round: true,
+          bgColor: bgColor,
+          lineHeight: '30px',
+          completedBgColor: bgColor
+        }
       }
     },
     taskViewConfig: {
@@ -205,16 +214,15 @@ function getGanttOptions(columns, taskKey) {
       showNowLine: true,
       viewStyle: {
         rowStyle({ row }) {
-          console.log(row)
           const yu = row.seq % 2
           if (yu !== 0) {
             return {
               // backgroundColor: '#fff8dc'
-              backgroundColor: '#fff0f5'
+              // backgroundColor: '#fff0f5'
             };
           } else {
             return {
-              backgroundColor: '#fff8dc'
+              // backgroundColor: '#fff8dc'
               // backgroundColor: '#fff0f5'
             };
           }

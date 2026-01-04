@@ -184,6 +184,9 @@ function getGanttOptions(columns, taskKey) {
     cellConfig: {
       height: 35
     },
+    taskSplitConfig: {
+      showCollapseTaskButton: false
+    },
     taskBarConfig: {
       showProgress: false,
       showContent: true,

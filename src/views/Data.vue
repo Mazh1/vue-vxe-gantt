@@ -69,10 +69,22 @@
             {{ getRowIndex(rowIndex) }}
           </template>
         </vxe-column>
-        <vxe-column field="name" title="人员" width="140" align='center'></vxe-column>
+        <vxe-column field="name" title="人员" width="140" align='center'>
+          <template #default="{ row }">
+            {{ (row.personnel_type === '外包' ? 't-' : '') + (row.name || '') }}
+          </template>
+        </vxe-column>
         <vxe-column field="project" title="产品/项目" align='center'></vxe-column>
         <vxe-column field="startdate" title="开始日期" align='center'></vxe-column>
         <vxe-column field="enddate" title="结束日期" align='center'></vxe-column>
+        <vxe-column field="priority" title="优先级" width="80" align='center'>
+          <template #default="{ row }">
+            <span v-if="row.priority === '高'">高</span>
+            <span v-else-if="row.priority === '中'">中</span>
+            <span v-else-if="row.priority === '低'">低</span>
+            <span v-else>{{ row.priority || '-' }}</span>
+          </template>
+        </vxe-column>
         <vxe-column field="status" title="状态" align='center'>
           <template #default="{ row }">
             <span v-if="row.status === '1'">进行中</span>
@@ -97,9 +109,9 @@
     </div>
     <div>
       <vxe-modal show-footer show-confirm-button show-cancel-button :confirm-closable="false" @confirm="dataEvent"
-        v-model="showPopup" :title="dialogTitle" height="440" width="500">
+        v-model="showPopup" :title="dialogTitle" height="480" width="500">
         <div class="form-container">
-          <div class="form-row" style="margin-left:28px">
+          <div class="form-row form-row-indent">
             <div class="lable">人员</div>
             <div>
               <vxe-pulldown v-model="formNameOptions.showPull" show-popup-shadow>
@@ -122,7 +134,16 @@
               </vxe-pulldown>
             </div>
           </div>
-          <div class="form-row" style="margin-left:28px">
+          <div class="form-row form-row-indent">
+            <div class="lable">人员类型</div>
+            <div>
+              <vxe-select v-model="formData.personnelType" class="form-input" placeholder="请选择">
+                <vxe-option value="正式" label="正式"></vxe-option>
+                <vxe-option value="外包" label="外包"></vxe-option>
+              </vxe-select>
+            </div>
+          </div>
+          <div class="form-row form-row-indent">
             <div class="lable">项目</div>
             <div>
               <vxe-pulldown v-model="formProjectOptions.showPull" show-popup-shadow>
@@ -146,17 +167,27 @@
               </vxe-pulldown>
             </div>
           </div>
-          <div class="form-row">
+          <div class="form-row form-row-indent">
             <div class="lable">开始日期</div>
             <vxe-date-picker v-model="formData.startDate" :editable="false" placeholder="开始日期"
               class="form-input"></vxe-date-picker>
           </div>
-          <div class="form-row">
+          <div class="form-row form-row-indent">
             <div class="lable">结束日期</div>
             <vxe-date-picker v-model="formData.endDate" :editable="false" placeholder="结束日期"
               class="form-input"></vxe-date-picker>
           </div>
-          <div class="form-row" style="margin-left:28px">
+          <div class="form-row form-row-indent">
+            <div class="lable">优先级</div>
+            <div>
+              <vxe-select v-model="formData.priority" class="form-input" placeholder="请选择">
+                <vxe-option value="高" label="高"></vxe-option>
+                <vxe-option value="中" label="中"></vxe-option>
+                <vxe-option value="低" label="低"></vxe-option>
+              </vxe-select>
+            </div>
+          </div>
+          <div class="form-row form-row-indent">
             <div class="lable">状态</div>
             <div>
               <vxe-select v-model="formData.status" class="form-input" placeholder="请选择">
@@ -210,7 +241,9 @@ const formData = reactive({
   projectName: '',
   startDate: new Date().toLocaleDateString('zh-CN').replace(/\//g, '-'),
   endDate: new Date().toLocaleDateString('zh-CN').replace(/\//g, '-'),
-  status: ''
+  status: '',
+  priority: '中',
+  personnelType: '正式'
 });
 const searchNameOptions = reactive({
   showPull: false,
@@ -415,7 +448,9 @@ const createEvent = () => {
   formProjectOptions.searchName = '';
   dialogTitle.value = '新建'
   showPopup.value = true
-  formData.status = '1';
+  formData.status = '1'
+  formData.priority = '中'
+  formData.personnelType = '正式'
 }
 /**
  * 编辑事件
@@ -434,6 +469,8 @@ const editEvent = (row, isCopy) => {
   formData.startDate = row.startdate;
   formData.endDate = row.enddate;
   formData.status = row.status;
+  formData.priority = row.priority || '中';
+  formData.personnelType = row.personnel_type || row.personnelType || '正式';
 }
 /**
  * 删除事件
@@ -639,9 +676,20 @@ onMounted(() => {
 .form-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 5px;
-  /* 表单项之间的间距 */
   margin-bottom: 20px;
+}
+
+.form-container .form-row.form-row-indent {
+  margin-left: 28px;
+}
+
+.form-container .form-row .lable {
+  width: 72px;
+  min-width: 72px;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .table-container {
@@ -698,6 +746,6 @@ onMounted(() => {
 
 .form-container {
   margin-top: 15px;
-  margin-left: 50px;
+  margin-left: 20px;
 }
 </style>

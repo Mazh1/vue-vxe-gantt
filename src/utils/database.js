@@ -31,6 +31,8 @@ class DatabaseService {
         startdate TEXT NOT NULL,
         enddate TEXT NOT NULL,
         status TEXT NOT NULL,
+        priority TEXT DEFAULT '中',
+        personnel_type TEXT DEFAULT '正式',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `;
@@ -51,6 +53,17 @@ class DatabaseService {
     this.db.exec(createProjectTableSQL);
     this.db.exec(createPersonnelTableSQL);
     this.db.exec(createProjectNameTableSQL);
+    // 为已存在的 projects 表增加 priority 列（新安装无影响）
+    try {
+      this.db.exec(`ALTER TABLE projects ADD COLUMN priority TEXT DEFAULT '中'`);
+    } catch (e) {
+      if (!e.message.includes('duplicate column name')) throw e;
+    }
+    try {
+      this.db.exec(`ALTER TABLE projects ADD COLUMN personnel_type TEXT DEFAULT '正式'`);
+    } catch (e) {
+      if (!e.message.includes('duplicate column name')) throw e;
+    }
   }
   // 插入人员名称
   insertPersonnel(data) {
@@ -127,8 +140,8 @@ class DatabaseService {
   // 插入项目数据
   insertProject(data) {
     const stmt = this.db.prepare(`
-      INSERT INTO projects (name, project, startdate, enddate, status)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO projects (name, project, startdate, enddate, status, priority, personnel_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
 
     try {
@@ -137,7 +150,9 @@ class DatabaseService {
         data.projectName,
         data.startDate,
         data.endDate,
-        data.status
+        data.status,
+        data.priority || '中',
+        data.personnelType || '正式'
       );
       return {
         success: true,
@@ -160,7 +175,9 @@ class DatabaseService {
         project = @projectName,
         startdate = @startDate,
         enddate = @endDate,
-        status = @status
+        status = @status,
+        priority = @priority,
+        personnel_type = @personnelType
       WHERE id = @id
     `);
 
@@ -241,7 +258,7 @@ class DatabaseService {
 
     // 查询分页数据
     const dataSql = `
-            SELECT id, name, project, startdate, enddate, status, created_at
+            SELECT id, name, project, startdate, enddate, status, priority, personnel_type, created_at
             FROM projects
             ${whereClause}
             ORDER BY created_at DESC

@@ -71,7 +71,7 @@
         </vxe-column>
         <vxe-column field="name" title="人员" width="140" align='center'>
           <template #default="{ row }">
-            {{ (row.personnel_type === '外包' ? 't-' : '') + (row.name || '') }}
+            <span v-if="row.personnel_type === '外包'" style="color:#f56c6c">*</span>{{ row.name || '' }}
           </template>
         </vxe-column>
         <vxe-column field="project" title="产品/项目" align='center'></vxe-column>
